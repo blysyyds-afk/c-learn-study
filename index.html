@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f9ff">
+  <title>C Learn Study Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#home"><span class="brand-mark"></span>C Learn</a>
+    <nav><a href="#today">Today</a><a href="#roadmap">Roadmap</a><a href="#practice">Practice</a><a href="#reminder">Reminder</a></nav>
+    <button class="reset" id="resetProgress" type="button">Reset progress</button>
+  </header>
+
+  <main id="home">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">C LANGUAGE / 28-DAY FOUNDATION</p>
+        <h1>Small lessons.<br><span>Real progress.</span></h1>
+        <p class="intro" id="heroPromise"></p>
+        <div class="hero-actions"><a class="button button-primary" href="#today">Start learning <span>-></span></a><a class="quiet-link" href="#roadmap">View roadmap</a></div>
+        <div class="status-line"><span class="status-dot"></span><strong id="streakCount">0</strong><span id="streakLabel">day streak</span><i></i><span id="todayGoal">0 / 45 min</span></div>
+      </div>
+      <figure class="hero-art">
+        <img src="https://corporate.sanrio.co.jp/en/business-info/images/img_cinnamoroll.png" alt="Cinnamoroll official character image" referrerpolicy="no-referrer">
+        <figcaption>Keep going, one clear step at a time.</figcaption>
+      </figure>
+    </section>
+
+    <section class="overview" aria-label="Learning overview">
+      <article><p>COURSE PROGRESS</p><strong id="courseProgress">0 / 7 days</strong><div class="progress-track"><i id="courseMeter"></i></div><small id="courseProgressNote"></small></article>
+      <article><p>TODAY'S FOCUS</p><strong id="chapterLabel">Day 1</strong><small id="todayTopic"></small></article>
+      <article><p>PRACTICE</p><strong id="practiceProgress">0 / 14</strong><div class="progress-track"><i id="practiceMeter"></i></div><small id="accuracyHint"></small></article>
+    </section>
+
+    <section id="today" class="study-workspace">
+      <aside class="day-rail">
+        <div class="rail-heading"><p class="eyebrow">WEEK 01</p><h2>7-day starter</h2></div>
+        <div class="day-list" id="dayList">
+          <button data-day="1" type="button"><b>01</b><span>Output</span><i></i></button>
+          <button data-day="2" type="button"><b>02</b><span>Variables</span><i></i></button>
+          <button data-day="3" type="button"><b>03</b><span>Input</span><i></i></button>
+          <button data-day="4" type="button"><b>04</b><span>Choices</span><i></i></button>
+          <button data-day="5" type="button"><b>05</b><span>Loops</span><i></i></button>
+          <button data-day="6" type="button"><b>06</b><span>Functions</span><i></i></button>
+          <button data-day="7" type="button"><b>07</b><span>Review</span><i></i></button>
+        </div>
+      </aside>
+
+      <article class="lesson-card">
+        <div class="card-top"><span class="eyebrow" id="lessonKicker">DAY 01 / 15 MIN</span><span class="lesson-state" id="lessonState">Not completed</span></div>
+        <h2 id="lessonTitle"></h2>
+        <div class="teacher-dialogue"><span id="teacherTag">WHY IT WORKS</span><p id="lessonStory"></p><p id="lessonBridge"></p></div>
+        <pre><code id="lessonCode"></code></pre>
+        <div class="explanations" id="lineExplanations"></div>
+        <div class="memory-line"><span>MEMORY HOOK</span><b id="memoryHook"></b></div>
+        <div class="try-box">
+          <div><p class="eyebrow">TRY IT YOURSELF</p><h3 id="tryTitle"></h3><p id="tryPrompt"></p><label id="customTextLabel">Your message <input id="customText" maxlength="32" value="Hello, C!"></label><button class="button button-plain" id="runDemo" type="button">Run this line</button></div>
+          <div class="mini-terminal"><span>OUTPUT</span><strong id="consoleOutput">Waiting for your code...</strong><small id="demoTeacher"></small></div>
+        </div>
+        <section class="recall-card" aria-label="Code recall practice">
+          <div class="recall-heading"><div><p class="eyebrow">MEMORY PRACTICE</p><h3 id="recallTitle">Write it without looking.</h3></div><span id="recallStatus">Step 1 of 2</span></div>
+          <p class="recall-intro" id="recallIntro"></p>
+          <div class="recall-grid">
+            <div class="recall-step"><b>01</b><div><h4 id="blankTitle">Keyword recall</h4><p id="blankPrompt"></p><div class="blank-list" id="recallBlanks"></div><button class="button button-plain" id="checkBlanks" type="button">Check keywords</button><small class="recall-feedback" id="blanksFeedback"></small></div></div>
+            <div class="recall-step"><b>02</b><div><h4 id="writeTitle">Code dictation</h4><p id="writePrompt"></p><textarea id="codeRecall" spellcheck="false" placeholder="Write the code here, without copying..."></textarea><button class="button button-primary" id="checkRecall" type="button">Check my code</button><small class="recall-feedback" id="recallFeedback"></small></div></div>
+          </div>
+        </section>
+        <button class="button button-primary" id="completeLesson" type="button">Complete this lesson <span>OK</span></button>
+      </article>
+
+      <aside class="session-panel">
+        <p class="eyebrow">TODAY'S SESSION</p>
+        <div class="session-time"><strong id="sessionMinutes">0</strong><span>/ 45 min</span></div>
+        <div class="progress-track wide"><i id="goalMeter"></i></div>
+        <ol><li>Read the guided explanation</li><li>Recall the keywords and write code</li><li>Work through the question bank</li></ol>
+        <div class="coach-note" id="coachNote"></div>
+      </aside>
+    </section>
+
+    <section id="roadmap" class="learning-path">
+      <div class="heading-row"><div><p class="eyebrow">LEARNING PATH</p><h2>Build the foundation before going faster.</h2></div><p>Finish one visible milestone at a time.</p></div>
+      <div class="path-table">
+        <article class="current"><span>01</span><div><h3>Syntax foundation</h3><p>Output, variables, input, choices, and loops</p></div><small>Weeks 1-4</small></article>
+        <article><span>02</span><div><h3>Functions and arrays</h3><p>Break down problems and write small programs</p></div><small>Weeks 5-8</small></article>
+        <article><span>03</span><div><h3>Pointers and structs</h3><p>Understand how C represents and passes data</p></div><small>Weeks 9-14</small></article>
+        <article><span>04</span><div><h3>Algorithms and projects</h3><p>Data structures, files, and complete practice projects</p></div><small>Keep building</small></article>
+      </div>
+    </section>
+
+    <section id="practice" class="practice-section">
+      <div class="heading-row"><div><p class="eyebrow">QUESTION BANK</p><h2 id="practiceHeading">Check what you understood.</h2></div><span class="level-tag" id="practiceLevel">Day 1</span></div>
+      <article class="quiz-card">
+        <div class="question-meta"><span id="questionCounter">Question 1 of 2</span><span id="questionType">Concept check</span></div>
+        <p class="question" id="questionText"></p>
+        <div class="answers" id="answers"></div>
+        <div class="feedback" id="feedback" aria-live="polite"></div>
+        <div class="quiz-footer"><span id="scoreText">Correct: 0</span><button class="button button-plain" id="nextQuestion" type="button">Next question -></button></div>
+      </article>
+    </section>
+
+    <section id="reminder" class="reminder-card">
+      <div><p class="eyebrow">DAILY REMINDER</p><h2>Make the time easy to keep.</h2><p>Choose a time for a 45-minute guided session. You can also make a Gmail draft for yourself.</p></div>
+      <form id="reminderForm"><label>Daily reminder <input id="reminderTime" type="time" value="20:30"></label><div><button class="button button-primary" type="submit">Save</button><button class="button button-plain" id="gmailDraft" type="button">Create Gmail draft</button></div><p class="form-status" id="reminderStatus"></p></form>
+    </section>
+  </main>
+  <footer>Cinnamoroll image &copy; SANRIO CO., LTD. &middot; <a href="https://corporate.sanrio.co.jp/en/business-info/brands/cinnamoroll/" target="_blank" rel="noopener">Official character page</a></footer>
+  <script src="app.js"></script>
+</body>
+</html>
+
