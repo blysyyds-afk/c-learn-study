@@ -10,6 +10,8 @@ const defaultState = {
   completedDays: [],
   answers: {},
   recallChecks: {},
+  mistakes: {},
+  reviewTarget: "",
   minutes: 0,
   activeDate: "",
   streak: 0,
@@ -20,7 +22,8 @@ let state = { ...defaultState, ...saved };
 if (!Array.isArray(state.completedDays)) state.completedDays = [];
 if (!state.answers || typeof state.answers !== "object") state.answers = {};
 if (!state.recallChecks || typeof state.recallChecks !== "object") state.recallChecks = {};
-state.currentDay = Math.min(7, Math.max(1, Number(state.currentDay) || 1));
+if (!state.mistakes || typeof state.mistakes !== "object") state.mistakes = {};
+state.currentDay = Math.min(28, Math.max(1, Number(state.currentDay) || 1));
 
 const qs = (selector) => document.querySelector(selector);
 const qsa = (selector) => [...document.querySelectorAll(selector)];
@@ -120,6 +123,43 @@ const lessons = [
   }
 ];
 
+const extensionLessons = [
+  [8, "Arrays", "第 8 天：把一组数据排进同一排抽屉", "int scores[3] = {86, 92, 78};\nprintf(\"%d\", scores[0]);", "数组就是一排同类型的小抽屉；编号从 0 开始。", "int scores[3]", "准备 3 个整型抽屉", "scores[0]", "取出第一个抽屉里的值"],
+  [9, "Array loops", "第 9 天：逐个检查一排数据", "int scores[3] = {86, 92, 78};\nfor (int i = 0; i < 3; i++) {\n  printf(\"%d \", scores[i]);\n}", "循环变量 i 像手指，依次指向每个数组位置。", "i < 3", "只访问编号 0 到 2", "scores[i]", "取出当前编号的抽屉"],
+  [10, "Strings", "第 10 天：让文字成为数据", "char name[] = \"Mia\";\nprintf(\"Hello, %s\", name);", "字符串是一串字符；C 用 \"\\0\" 标记文字的终点。", "char", "文字由字符组成", "%s", "按字符串方式显示文字"],
+  [11, "Pointers", "第 11 天：认识变量的地址", "int score = 88;\nint *p = &score;\nprintf(\"%d\", *p);", "变量像盒子，& 是盒子的地址，*p 是顺着地址拿到盒子里的值。", "&score", "拿到 score 的地址", "*p", "通过地址读取 score"],
+  [12, "Pointer arrays", "第 12 天：数组和指针如何配合", "int nums[3] = {2, 4, 6};\nint *p = nums;\nprintf(\"%d\", *(p + 1));", "数组名可以理解为第一格的起点；指针移动一格，就是看下一个元素。", "int *p", "准备一个地址指针", "p + 1", "向后一格"],
+  [13, "Parameters", "第 13 天：把数据交给函数处理", "int add(int a, int b) {\n  return a + b;\n}\nprintf(\"%d\", add(2, 3));", "参数像交给函数的材料；return 是函数交回来的答案。", "int a, int b", "函数收到两个材料", "return", "把计算结果交回去"],
+  [14, "Week review", "第 14 天：用一个小程序复盘第二周", "int max(int a, int b) {\n  if (a > b) return a;\n  return b;\n}", "先拆问题，再让函数完成一件小事；这是写程序最重要的习惯。", "max", "给小任务一个名字", "if", "选择较大的数"],
+  [15, "Structs", "第 15 天：把一条记录装进一个资料卡", "struct Student {\n  char name[20];\n  int score;\n};", "结构体把不同类型、但属于同一件事的数据放在一起。", "struct Student", "定义学生资料卡", "int score", "资料卡中的一个字段"],
+  [16, "Struct arrays", "第 16 天：管理多张资料卡", "struct Student list[2];\nlist[0].score = 90;", "数组负责很多张卡，. 负责打开某一张卡上的字段。", "list[0]", "第一张学生卡", ".score", "这张卡上的分数字段"],
+  [17, "Files", "第 17 天：把数据保存到文件", "FILE *fp = fopen(\"notes.txt\", \"w\");\nfprintf(fp, \"Hello\");\nfclose(fp);", "文件操作有固定节奏：打开、读写、关闭。", "fopen", "打开文件", "fclose", "完成后关好文件"],
+  [18, "File reading", "第 18 天：从文件中读回信息", "FILE *fp = fopen(\"notes.txt\", \"r\");\nchar text[50];\nfgets(text, 50, fp);", "读文件前先确认文件已成功打开；每次读到的数据都要有去处。", "\"r\"", "以读取方式打开", "fgets", "读取一行文字"],
+  [19, "Sorting", "第 19 天：让数据按规则排队", "for (int i = 0; i < 3; i++) {\n  for (int j = 0; j < 2; j++) {\n    if (a[j] > a[j + 1]) { /* swap */ }\n  }\n}", "排序不是魔法：反复比较相邻元素，把不合适的位置交换掉。", "if (a[j] > a[j + 1])", "发现顺序不对", "swap", "交换两个位置"],
+  [20, "Searching", "第 20 天：在有序数据中更快地找", "int mid = (left + right) / 2;\nif (a[mid] < target) left = mid + 1;", "二分查找每次排除一半范围，但前提是数据已经有序。", "mid", "中间位置", "left = mid + 1", "目标在右半边"],
+  [21, "Week review", "第 21 天：把数据处理流程串起来", "// 输入 -> 保存 -> 处理 -> 输出\nint total = 0;\nfor (int i = 0; i < n; i++) total += a[i];", "看程序时先追踪数据：它从哪里来、在哪里变、最后去了哪里。", "total", "累积结果的盒子", "total += a[i]", "把当前数据加入结果"],
+  [22, "Dynamic memory", "第 22 天：需要多少空间，就申请多少", "int *a = malloc(n * sizeof(int));\n/* use a */\nfree(a);", "动态内存是临时租来的空间；用完必须 free，像离开房间要关灯。", "malloc", "申请一段空间", "free", "归还用完的空间"],
+  [23, "Linked lists", "第 23 天：用链接把数据串成队列", "struct Node {\n  int value;\n  struct Node *next;\n};", "链表的每个节点都保存数据和下一站地址，像一节节车厢。", "value", "当前车厢的数据", "next", "下一节车厢的地址"],
+  [24, "Debugging", "第 24 天：像侦探一样定位错误", "printf(\"value: %d\\n\", value);\n// 观察变量在每一步的变化", "调试不是猜；先复现，再缩小范围，再观察关键变量。", "printf", "把关键状态打印出来", "value", "需要追踪的变量"],
+  [25, "Calculator", "第 25 天：做一个小计算器", "char op;\nscanf(\"%d %c %d\", &a, &op, &b);\nif (op == '+') printf(\"%d\", a + b);", "项目开始于清楚的输入、规则和输出；先让最小版本跑通。", "op", "保存运算符", "op == '+'", "判断用户选择的运算"],
+  [26, "Score manager", "第 26 天：做一个成绩管理小项目", "struct Student list[30];\n// 输入、计算平均分、输出结果", "把项目拆成小函数：录入、计算、展示，每个函数只做一件事。", "list[30]", "最多保存 30 条记录", "平均分", "需要单独计算的结果"],
+  [27, "Mock exam", "第 27 天：限时复盘与查漏补缺", "// 读题 -> 写输入输出 -> 拆步骤 -> 编码 -> 自测", "考试题先写清思路再编码；卡住时回到最小可验证的一步。", "输入输出", "先定义问题边界", "自测", "用样例验证程序"],
+  [28, "Capstone", "第 28 天：完成你的第一个 C 小作品", "int main() {\n  // 选择一个真实小问题并完成它\n  return 0;\n}", "真正的进步是能把一个模糊需求拆成可验证的小步骤。", "main", "项目从入口开始", "return 0", "完成并正常结束"]
+];
+
+function makeExtensionLesson([id, short, title, code, memory, firstLabel, firstText, secondLabel, secondText]) {
+  return {
+    id, short, title, code, memory,
+    story: `今天不靠死记：把“${short}”想成你已经会用的生活动作，再把它翻译成 C 的步骤。`,
+    bridge: `先说清楚这段代码要解决什么，再观察 ${firstLabel} 和 ${secondLabel} 分别负责哪一步。`,
+    parts: [[firstLabel, firstText], [secondLabel, secondText], ["步骤", "先让最小例子成立，再逐步加入变化"], ["检查", "用一个小样例验证你是否真的理解"]],
+    tryTitle: "先预测，再验证你的理解",
+    tryPrompt: "输入一个自己的例子。这里是概念演练，不是在线 C 编译器。",
+    coach: "如果一段代码看起来复杂，就把它切成：数据从哪里来、经过什么处理、最后去哪。"
+  };
+}
+lessons.push(...extensionLessons.map(makeExtensionLesson));
+
 const questions = [
   { id:"d1q1", day:1, q:u("\u54ea\u4e2a\u51fd\u6570\u8d1f\u8d23\u628a\u6587\u5b57\u663e\u793a\u5230\u5c4f\u5e55\uff1f"), a:["scanf()","printf()","main()","return"], correct:1, why:u("printf() \u662f\u201c\u8bf4\u201d\u7684\u6307\u4ee4\uff1bscanf() \u624d\u662f\u7528\u6765\u201c\u542c\u201d\u8f93\u5165\u7684\u3002") },
   { id:"d1q2", day:1, q:u("\u4e00\u4e2a C \u7a0b\u5e8f\u901a\u5e38\u4ece\u54ea\u91cc\u5f00\u59cb\u6267\u884c\uff1f"), a:["printf()","main()","#include","return 0"], correct:1, why:u("main() \u662f\u7a0b\u5e8f\u7684\u8d77\u70b9\u3002") },
@@ -161,7 +201,13 @@ const dayOneDrills = [
   { id:"d1r3", day:1, type:u("\u627e\u9519\u9898"), q:u("printf(\"Hello\") \u6700\u660e\u663e\u7f3a\u5c11\u7684\u662f\uff1f"), a:[u("\u5de6\u62ec\u53f7"),u("\u5206\u53f7"),u("\u5f15\u53f7"),u("\u5b57\u6bcd p")], correct:1, why:u("\u5b8c\u6574\u7684\u8bed\u53e5\u9700\u8981\u7528\u5206\u53f7\u7ed3\u5c3e\uff1aprintf(\"Hello\");") },
   { id:"d1r4", day:1, type:u("\u4ee3\u7801\u987a\u5e8f"), q:u("\u8981\u5199\u4e00\u4e2a\u6700\u5c0f C \u7a0b\u5e8f\uff0c\u4e0b\u5217\u987a\u5e8f\u6700\u5408\u7406\u7684\u662f\uff1f"), a:[u("\u5148 main\uff0c\u518d #include"),u("\u5148 #include\uff0c\u518d main\uff0c\u6700\u540e return"),u("\u53ea\u5199 printf"),u("\u5148 return\uff0c\u518d main")], correct:1, why:u("\u7b2c\u4e00\u4e2a\u7a0b\u5e8f\u7684\u9aa8\u67b6\u662f\uff1a\u5148\u51c6\u5907\u5de5\u5177\uff0c\u7136\u540e\u5728 main \u91cc\u6267\u884c\u6307\u4ee4\u3002") }
 ];
-questions.push(...lessons.flatMap(keywordBank), ...dayOneDrills);
+function reinforcementBank(lesson) {
+  return [
+    { id:`d${lesson.id}m`, day:lesson.id, type:u("记忆锚"), q:u("用一句话记住今天的关键逻辑，哪一项最准确？"), a:[lesson.memory, u("先背下所有符号，不必理解"), u("跳过练习，明天再说"), u("只要把代码复制一遍")], correct:0, why:lesson.memory },
+    { id:`d${lesson.id}p`, day:lesson.id, type:u("学习策略"), q:u("遇到今天这类新代码时，最有效的第一步是？"), a:[u("先用人话说出数据、步骤和结果"), u("马上背完整段代码"), u("只看答案不动手"), u("删掉看不懂的行")], correct:0, why:u("先翻译成自己的话，才能判断每一行究竟在做什么；这比机械背诵更稳。") }
+  ];
+}
+questions.push(...lessons.flatMap(keywordBank), ...lessons.flatMap(reinforcementBank), ...dayOneDrills);
 
 let questionIndex = 0;
 let locked = false;
@@ -174,6 +220,16 @@ function syncDate() {
   const today = dateKey();
   if (state.activeDate && state.activeDate !== today) state.minutes = 0;
 }
+function addDays(days) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+function mistakeEntries() {
+  return Object.entries(state.mistakes).map(([id, value]) => ({ id, ...value })).filter((item) => questions.some((question) => question.id === item.id));
+}
+function dueMistakes() { return mistakeEntries().filter((item) => item.due <= todayISO()); }
 function save() { store.set("c-learn-v2", state); }
 function addMinutes(amount) {
   const today = dateKey();
@@ -216,7 +272,7 @@ function outputTip(lesson) {
     u("\u8c03\u7528\u51fd\u6570\u5c31\u50cf\u6309\u4e0b\u4e00\u4e2a\u5df2\u7ecf\u547d\u540d\u7684\u52a8\u4f5c\u3002"),
     u("\u4f60\u5df2\u7ecf\u628a\u8f93\u5165\u3001\u4fdd\u5b58\u3001\u5224\u65ad\u548c\u8f93\u51fa\u4e32\u8d77\u6765\u4e86\u3002")
   ];
-  return tips[lesson.id - 1];
+  return tips[lesson.id - 1] || u("这是一个概念模拟：先用自己的话预测数据如何变化，再到真实编译器验证。");
 }
 
 function recallPlan(lesson) {
@@ -268,7 +324,8 @@ function renderRecall() {
 
 function renderLesson() {
   const lesson = currentLesson();
-  qs("#lessonKicker").textContent = `DAY ${String(lesson.id).padStart(2, "0")} / 15 MIN`;
+  renderDayList();
+  qs("#lessonKicker").textContent = `DAY ${String(lesson.id).padStart(2, "0")} / 25 MIN`;
   qs("#lessonTitle").textContent = lesson.title;
   qs("#lessonStory").textContent = lesson.story;
   qs("#lessonBridge").textContent = lesson.bridge;
@@ -292,6 +349,38 @@ function renderLesson() {
     button.classList.toggle("complete", completed(day));
   });
 }
+function renderDayList() {
+  qs("#weekLabel").textContent = `WEEK ${String(Math.ceil(state.currentDay / 7)).padStart(2, "0")}`;
+  qs("#dayList").innerHTML = lessons.map((lesson) => `<button type="button" data-day="${lesson.id}" class="${lesson.id === state.currentDay ? "active" : ""} ${completed(lesson.id) ? "complete" : ""}"><b>DAY ${String(lesson.id).padStart(2, "0")}</b><span>${lesson.short}</span></button>`).join("");
+}
+function renderReviewPanel() {
+  const due = dueMistakes();
+  const all = mistakeEntries();
+  const button = qs("#startReview");
+  qs("#reviewCount").textContent = due.length;
+  if (due.length) {
+    qs("#reviewHint").textContent = `今天有 ${due.length} 道错题等待你重新理解。`;
+    qs("#reviewPanelText").textContent = `今天复习 ${due.length} 道错题，用“回忆”替代重看答案。`;
+    button.disabled = false;
+  } else if (all.length) {
+    qs("#reviewHint").textContent = `已记录 ${all.length} 道错题，下一次会按间隔出现。`;
+    qs("#reviewPanelText").textContent = "今天没有到期错题；先继续本课练习。";
+    button.disabled = false;
+  } else {
+    qs("#reviewHint").textContent = "答错的题会自动进入复习队列。";
+    qs("#reviewPanelText").textContent = "还没有错题；答错后会在这里安排复习。";
+    button.disabled = true;
+  }
+}
+function renderMilestones() {
+  const projects = [
+    [7, "第一周小作业", "写一个“分数是否及格”的互动程序"],
+    [14, "函数小工具", "完成一个能复用的两数比较函数"],
+    [21, "数据处理练习", "读入一组成绩，计算平均值并找出最高分"],
+    [28, "结课作品", "选择真实小问题，完成一个可演示的 C 小程序"]
+  ];
+  qs("#projectMilestones").innerHTML = projects.map(([day, title, text]) => `<article class="${state.completedDays.includes(day) ? "done" : ""}"><span>DAY ${String(day).padStart(2, "0")}</span><h3>${title}</h3><p>${text}</p></article>`).join("");
+}
 function renderOverview() {
   const { answered, correct } = score();
   const day = currentLesson();
@@ -305,7 +394,7 @@ function renderOverview() {
   qs("#todayTopic").textContent = day.title;
   qs("#practiceProgress").textContent = `${answered} / ${questions.length}`;
   qs("#practiceMeter").style.width = `${practicePercent}%`;
-  qs("#accuracyHint").textContent = answered ? `${u("\u7b54\u5bf9")} ${correct} / ${answered}` : u("\u4ece\u672c\u65e5\u7684 2 \u9053\u7ec3\u4e60\u5f00\u59cb\u3002");
+  qs("#accuracyHint").textContent = answered ? `${u("\u7b54\u5bf9")} ${correct} / ${answered}` : u("每课都有概念、预测、找错与记忆强化题。");
   qs("#streakCount").textContent = state.streak;
   qs("#streakLabel").textContent = u("\u5929\u8fde\u7eed\u5b66\u4e60");
   qs("#todayGoal").textContent = `${state.minutes} / 45 ${u("\u5206\u949f")}`;
@@ -313,6 +402,8 @@ function renderOverview() {
   qs("#goalMeter").style.width = `${minutePercent}%`;
   qs("#heroPromise").textContent = u("\u4e0d\u53ea\u662f\u770b\u4e00\u4e2a\u77e5\u8bc6\u70b9\u3002\u6bcf\u5929\u90fd\u6709\u4e00\u4e2a\u5b8c\u6574\u7684\u5c0f\u76ee\u6807\uff1a\u542c\u61c2\u3001\u52a8\u624b\u3001\u7ec3\u4e60\u3001\u7ed9\u81ea\u5df1\u4e00\u4e2a\u53ef\u89c1\u7684\u8fdb\u5ea6\u3002");
   qs("#reminderTime").value = state.reminder;
+  renderReviewPanel();
+  renderMilestones();
 }
 function renderPractice() {
   const dayQuestions = currentQuestions();
@@ -344,11 +435,13 @@ function renderPractice() {
 }
 function renderAll() { syncDate(); renderLesson(); renderOverview(); renderPractice(); save(); }
 
-qsa("#dayList button").forEach((button) => button.addEventListener("click", () => {
+qs("#dayList").addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-day]");
+  if (!button) return;
   state.currentDay = Number(button.dataset.day);
   questionIndex = 0;
   renderAll();
-}));
+});
 
 qs("#runDemo").addEventListener("click", () => {
   const lesson = currentLesson();
@@ -375,6 +468,13 @@ qs("#answers").addEventListener("click", (event) => {
   const choice = Number(button.dataset.index);
   const correct = choice === question.correct;
   state.answers[question.id] = { choice, correct };
+  if (!correct) {
+    const previous = state.mistakes[question.id];
+    state.mistakes[question.id] = { day: question.day, due: addDays(previous ? 2 : 1), stage: (previous?.stage || 0) + 1 };
+  } else if (state.reviewTarget === question.id) {
+    delete state.mistakes[question.id];
+    state.reviewTarget = "";
+  }
   addMinutes(5);
   renderAll();
 });
@@ -382,6 +482,18 @@ qs("#answers").addEventListener("click", (event) => {
 qs("#nextQuestion").addEventListener("click", () => {
   questionIndex = (questionIndex + 1) % currentQuestions().length;
   renderPractice();
+});
+
+qs("#startReview").addEventListener("click", () => {
+  const item = dueMistakes()[0] || mistakeEntries().sort((a, b) => a.due.localeCompare(b.due))[0];
+  if (!item) return;
+  state.currentDay = item.day;
+  const index = currentQuestions().findIndex((question) => question.id === item.id);
+  questionIndex = index >= 0 ? index : 0;
+  delete state.answers[item.id];
+  state.reviewTarget = item.id;
+  renderAll();
+  qs("#practice").scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 qs("#checkBlanks").addEventListener("click", () => {
